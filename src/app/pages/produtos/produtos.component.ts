@@ -1,12 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-interface Produto {
-  id: number;
-  nome: string;
-  preco: number;
-}
+import { ProdutosService } from '../../services/produtos.service';
 
 @Component({
   selector: 'app-produtos',
@@ -17,6 +12,30 @@ interface Produto {
       <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
           <h1 class="mb-0">Produtos</h1>
+          <small class="text-muted">Lista básica de produtos</small>
+        </div>
+        <button class="btn btn-primary" (click)="mostrarFormulario = !mostrarFormulario">
+          {{ mostrarFormulario ? 'Cancelar' : 'Cadastrar produto' }}
+        </button>
+      </div>
+
+      <div *ngIf="mostrarFormulario" class="card mb-4">
+        <div class="card-body">
+          <form (ngSubmit)="adicionarProduto()">
+            <div class="row g-3 align-items-end">
+              <div class="col-md-6">
+                <label class="form-label">Nome</label>
+                <input class="form-control" [(ngModel)]="form.nome" name="nome" required />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Preço (R$)</label>
+                <input type="number" class="form-control" [(ngModel)]="form.preco" name="preco" required min="0" step="0.01" />
+              </div>
+              <div class="col-md-2">
+                <button class="btn btn-success w-100" type="submit">{{ editarId !== null ? 'Salvar' : 'Adicionar' }}</button>
+              </div>
+            </div>
+          </form>
         </div>
       </div>
 
@@ -38,18 +57,23 @@ interface Produto {
   `
 })
 export class ProdutosComponent {
-  produtos = signal<Produto[]>([
-    { id: 1, nome: 'Camiseta', preco: 59.9 },
-    { id: 2, nome: 'Caneca', preco: 29.5 },
-    { id: 3, nome: 'Livro', preco: 89.0 },
-    { id: 4, nome: 'Bola', preco: 93.9 },
-    { id: 5, nome: 'Computador', preco: 2129.5 },
-    { id: 6, nome: 'Tenis', preco: 123.0 }
-  ]);
+  constructor(private readonly produtosService: ProdutosService) {}
+
+  produtos = () => this.produtosService.produtos();
 
   mostrarFormulario = false;
 
+  // quando editarId é null => modo create
+  editarId: number | null = null;
+
   form: { nome: string; preco: number | null } = { nome: '', preco: null };
 
-  private nextId = 4;
+  adicionarProduto() {
+    if (!this.form.nome || this.form.preco === null) return;
+
+    this.produtosService.criarProduto({ nome: this.form.nome, preco: this.form.preco });
+
+    this.form = { nome: '', preco: null };
+    this.mostrarFormulario = false;
+  }
 }
