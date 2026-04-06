@@ -22,4 +22,14 @@ export class ProdutosService {
     const novo: Produto = { id: this.nextId++, nome: data.nome.trim(), preco: Number(data.preco) };
     this.produtosSignal.update((lista) => [...lista, novo]);
   }
+
+  update(id: number, data: { nome: string; preco: number }): void {
+    this.produtosSignal.update((lista) =>
+      lista.map((p) => (p.id === id ? { ...p, nome: data.nome.trim(), preco: Number(data.preco) } : p))
+    );
+  }
+
+  delete(id: number): void {
+    this.produtosSignal.update((lista) => lista.filter((p) => p.id !== id));
+  }
 }
